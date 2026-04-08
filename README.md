@@ -1,1 +1,1 @@
-#2D convolution accelerator
+# 2D convolution accelerator
