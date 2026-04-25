@@ -1,6 +1,0 @@
-*.bit
-*.hwh
-build/
-vivado/
-hls_fir_*
-
