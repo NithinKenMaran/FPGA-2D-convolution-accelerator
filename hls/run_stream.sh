@@ -30,38 +30,67 @@ echo "=========================================="
 echo " HLS Synthesis Summary"
 echo "=========================================="
 
-printf "%-12s | %12s | %12s | %10s | %10s | %10s | %10s\n" \
+printf "%-12s | %10s | %12s | %12s | %10s | %10s | %10s\n" \
     "Variant" "Latency" "Time(ns)" "DSP" "BRAM" "FF" "LUT"
-printf "%-12s-+-%12s-+-%12s-+-%10s-+-%10s-+-%10s-+-%10s\n" \
-    "------------" "------------" "------------" "----------" "----------" "----------" "----------"
+printf "%-12s-+-%10s-+-%12s-+-%12s-+-%10s-+-%10s-+-%10s\n" \
+    "------------" "----------" "------------" "------------" "----------" "----------" "----------"
 
 for v in "${variants[@]}"; do
     rpt="hls_2dconv_stream_${v}/sol1/syn/report/csynth.rpt"
 
     if [[ ! -f "$rpt" ]]; then
-        printf "%-12s | %s\n" "$v" "MISSING REPORT: $rpt"
+        printf "%-12s | missing report\n" "$v"
         continue
     fi
 
-    # Extract the top-level conv2d_stream row.
-    # Example row:
-    # |+ conv2d_stream | - | 0.39 | 246 | 2.460e+03 | ... | BRAM | DSP | FF | LUT | URAM |
-    row="$(grep -E '^\|[[:space:]]*\+[[:space:]]*conv2d_stream[[:space:]]*\|' "$rpt" | head -n 1)"
+    python3 - "$v" "$rpt" <<'PY'
+import sys
 
-    if [[ -z "$row" ]]; then
-        printf "%-12s | %s\n" "$v" "Could not find top-level row"
-        continue
-    fi
+variant = sys.argv[1]
+rpt = sys.argv[2]
 
-    latency="$(echo "$row" | awk -F'|' '{gsub(/ /,"",$5); print $5}')"
-    time_ns="$(echo "$row" | awk -F'|' '{gsub(/ /,"",$6); print $6}')"
-    bram="$(echo "$row" | awk -F'|' '{gsub(/^ +| +$/,"",$11); print $11}')"
-    dsp="$(echo "$row" | awk -F'|' '{gsub(/^ +| +$/,"",$12); print $12}')"
-    ff="$(echo "$row" | awk -F'|' '{gsub(/^ +| +$/,"",$13); print $13}')"
-    lut="$(echo "$row" | awk -F'|' '{gsub(/^ +| +$/,"",$14); print $14}')"
+def clean(x):
+    return x.strip()
 
-    printf "%-12s | %12s | %12s | %10s | %10s | %10s | %10s\n" \
-        "$v" "$latency" "$time_ns" "$dsp" "$bram" "$ff" "$lut"
+top = None
+
+with open(rpt, "r", errors="ignore") as f:
+    for line in f:
+        if "conv2d_stream" in line and "|+" in line:
+            cols = [clean(c) for c in line.split("|")]
+            # cols layout after split:
+            # 0 empty/indent
+            # 1 + conv2d_stream
+            # 2 Issue Type
+            # 3 Slack
+            # 4 Latency cycles
+            # 5 Latency ns
+            # 6 Iteration Latency
+            # 7 Interval
+            # 8 Trip Count
+            # 9 Pipelined
+            # 10 BRAM
+            # 11 DSP
+            # 12 FF
+            # 13 LUT
+            # 14 URAM
+            top = cols
+            break
+
+if top is None:
+    print(f"{variant:<12} | could not find top-level row")
+    sys.exit(0)
+
+latency = top[4]
+time_ns = top[5]
+bram = top[10]
+dsp = top[11]
+ff = top[12]
+lut = top[13]
+
+print(f"{variant:<12} | {latency:>10} | {time_ns:>12} | {dsp:>12} | {bram:>10} | {ff:>10} | {lut:>10}")
+PY
+
 done
 
 echo
@@ -82,39 +111,64 @@ for v in "${variants[@]}"; do
         continue
     fi
 
-    printf "%-26s | %10s | %10s | %8s | %10s\n" \
-        "Loop" "Latency" "IterLat" "II" "Pipelined"
-    printf "%-26s-+-%10s-+-%10s-+-%8s-+-%10s\n" \
-        "--------------------------" "----------" "----------" "--------" "----------"
+    python3 - "$rpt" <<'PY'
+import sys
 
-    # Print only the loops that matter for your report.
-    for loop in \
-        "init_rows" \
-        "init_cols" \
-        "init_rows_init_cols" \
-        "each_image_row" \
-        "linebuf_left_to_right" \
-        "mac_row" \
-        "mac_col" \
-        "shift_up"
-    do
-        line="$(grep -E "^\|[[:space:]]*o[[:space:]]+${loop}[[:space:]]*\|" "$rpt" | head -n 1 || true)"
+rpt = sys.argv[1]
 
-        if [[ -z "$line" ]]; then
+wanted = [
+    "init_rows",
+    "init_cols",
+    "init_rows_init_cols",
+    "each_image_row",
+    "linebuf_left_to_right",
+    "mac_row",
+    "mac_col",
+    "shift_up",
+]
+
+def clean(x):
+    return x.strip()
+
+rows = []
+
+with open(rpt, "r", errors="ignore") as f:
+    for line in f:
+        if "|" not in line:
             continue
-        fi
 
-        loop_name="$(echo "$line" | awk -F'|' '{gsub(/^ +| +$/,"",$2); gsub(/^o +/,"",$2); print $2}')"
-        latency="$(echo "$line" | awk -F'|' '{gsub(/ /,"",$5); print $5}')"
-        iter_lat="$(echo "$line" | awk -F'|' '{gsub(/ /,"",$7); print $7}')"
-        ii="$(echo "$line" | awk -F'|' '{gsub(/ /,"",$8); print $8}')"
-        pipelined="$(echo "$line" | awk -F'|' '{gsub(/ /,"",$10); print $10}')"
+        cols = [clean(c) for c in line.split("|")]
+        if len(cols) < 14:
+            continue
 
-        [[ -z "$ii" || "$ii" == "-" ]] && ii="-"
+        name = cols[1].strip()
 
-        printf "%-26s | %10s | %10s | %8s | %10s\n" \
-            "$loop_name" "$latency" "$iter_lat" "$ii" "$pipelined"
-    done
+        # Loop rows begin with "o loop_name"
+        if not name.startswith("o "):
+            continue
+
+        loop_name = name[2:].strip()
+
+        if loop_name not in wanted:
+            continue
+
+        latency = cols[4]
+        iter_lat = cols[6]
+        interval = cols[7]
+        trip_count = cols[8]
+        pipelined = cols[9]
+
+        rows.append((loop_name, latency, iter_lat, interval, trip_count, pipelined))
+
+print(f"{'Loop':<26} | {'Latency':>10} | {'IterLat':>10} | {'II':>8} | {'Trip':>8} | {'Pipelined':>10}")
+print(f"{'-'*26}-+-{'-'*10}-+-{'-'*10}-+-{'-'*8}-+-{'-'*8}-+-{'-'*10}")
+
+for loop_name, latency, iter_lat, interval, trip_count, pipelined in rows:
+    if not interval or interval == "-":
+        interval = "-"
+    print(f"{loop_name:<26} | {latency:>10} | {iter_lat:>10} | {interval:>8} | {trip_count:>8} | {pipelined:>10}")
+PY
+
 done
 
 echo
