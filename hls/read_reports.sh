@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-variants=("basic" "pipelined" "unrolled")
+variants=("basic" "pipelined" "unrolled" "aggressive")
 
 echo
 echo "=========================================="
@@ -17,7 +17,7 @@ for v in "${variants[@]}"; do
     rpt="hls_2dconv_stream_${v}/sol1/syn/report/csynth.rpt"
 
     if [[ ! -f "$rpt" ]]; then
-        printf "%-12s | missing report\n" "$v"
+        printf "%-12s | missing report: %s\n" "$v" "$rpt"
         continue
     fi
 
@@ -36,22 +36,6 @@ with open(rpt, "r", errors="ignore") as f:
     for line in f:
         if "conv2d_stream" in line and "|+" in line:
             cols = [clean(c) for c in line.split("|")]
-            # cols layout after split:
-            # 0 empty/indent
-            # 1 + conv2d_stream
-            # 2 Issue Type
-            # 3 Slack
-            # 4 Latency cycles
-            # 5 Latency ns
-            # 6 Iteration Latency
-            # 7 Interval
-            # 8 Trip Count
-            # 9 Pipelined
-            # 10 BRAM
-            # 11 DSP
-            # 12 FF
-            # 13 LUT
-            # 14 URAM
             top = cols
             break
 
@@ -121,7 +105,6 @@ with open(rpt, "r", errors="ignore") as f:
 
         name = cols[1].strip()
 
-        # Loop rows begin with "o loop_name"
         if not name.startswith("o "):
             continue
 

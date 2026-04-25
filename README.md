@@ -1,8 +1,8 @@
-# 2D Convolution HLS Project — Usage Guide
+# Streaming 2D Convolution Accelerator — Usage Guide
 
 This project implements a streaming 2D convolution accelerator using Vitis HLS, Vivado, and PYNQ-Z2.
 
-The accelerator takes a 5×5 image, applies a 3×3 kernel, and produces a 7×7 full-convolution output. Image data is transferred using AXI DMA, while the kernel coefficients are loaded once through AXI-Lite registers before streaming.
+The accelerator accepts a 5×5 input image, applies a 3×3 kernel, and produces a 7×7 full-convolution output. Image pixels are transferred using AXI DMA, while the 3×3 kernel coefficients are loaded through AXI-Lite registers before streaming begins.
 
 ---
 
@@ -21,7 +21,8 @@ The accelerator takes a 5×5 image, applies a 3×3 kernel, and produces a 7×7 f
 │   └── directives/
 │       ├── basic.tcl
 │       ├── pipelined.tcl
-│       └── unrolled.tcl
+│       ├── unrolled.tcl
+│       └── aggressive.tcl
 │
 ├── vivado/
 │   └── create_project.tcl
@@ -34,7 +35,22 @@ The accelerator takes a 5×5 image, applies a 3×3 kernel, and produces a 7×7 f
 
 ---
 
-## 2. HLS Synthesis
+## 2. HLS Directive Sets
+
+The project includes four HLS directive sets.
+
+| Variant      | Purpose                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| `basic`      | Disables automatic loop pipelining. Used as the low-resource, high-latency baseline.                         |
+| `pipelined`  | Pipelines the main sliding-window and row-shift loops. This is the recommended implementation.               |
+| `unrolled`   | Adds explicit unrolling of the 3×3 MAC loops. In this design, it may produce the same result as `pipelined`. |
+| `aggressive` | Pipelines the outer image-row loop. This can reduce latency but may greatly increase resource usage.         |
+
+The aggressive version is mainly for educational comparison.
+
+---
+
+## 3. Running HLS Synthesis
 
 Go to the HLS directory:
 
@@ -42,31 +58,22 @@ Go to the HLS directory:
 cd hls
 ```
 
-Synthesize the baseline version:
+Synthesize one variant:
 
 ```bash
 make basic
-```
-
-Synthesize the pipelined version:
-
-```bash
 make pipelined
-```
-
-Synthesize the unrolled version:
-
-```bash
 make unrolled
+make aggressive
 ```
 
-To run all variants and print a summary:
+Run all variants and print a report summary:
 
 ```bash
 ./run_stream.sh
 ```
 
-To read reports from already-generated builds:
+Read reports from existing builds:
 
 ```bash
 ./read_reports.sh
@@ -74,9 +81,9 @@ To read reports from already-generated builds:
 
 ---
 
-## 3. Example HLS Report Output
+## 4. Example HLS Report Output
 
-A typical output from `./read_reports.sh` may look like:
+Typical `./read_reports.sh` output:
 
 ```text
 ==========================================
@@ -87,15 +94,23 @@ Variant      |    Latency |     Time(ns) |          DSP |       BRAM |         F
 basic        |       2832 |    2.832e+04 |       3 (1%) |          - |  1153 (1%) |  1446 (2%)
 pipelined    |        246 |    2.460e+03 |     27 (12%) |          - |  4885 (4%) |  2151 (4%)
 unrolled     |        246 |    2.460e+03 |     27 (12%) |          - |  4885 (4%) |  2151 (4%)
+aggressive   |        160 |    1.600e+03 |    177 (80%) |          - | 13624 (12%)|  6334 (11%)
 ```
 
-The `basic` version uses fewer resources but has much higher latency. The `pipelined` and `unrolled` versions are faster but use more DSPs.
+The exact numbers may vary depending on code and HLS scheduling.
+
+Interpretation:
+
+* `basic` uses the fewest DSPs but has the highest latency.
+* `pipelined` greatly reduces latency by increasing parallelism.
+* `unrolled` may match `pipelined` because HLS already infers enough MAC parallelism to satisfy the pipelined loop.
+* `aggressive` may reduce latency further but can consume a very large amount of DSP resources.
 
 ---
 
-## 4. Manual C++ Testbench
+## 5. Manual C++ Testbench
 
-If Vitis HLS C simulation does not work on your system, run the testbench manually:
+If Vitis HLS C simulation fails on your Linux setup, run the testbench manually:
 
 ```bash
 cd hls
@@ -118,34 +133,36 @@ PASS: 2D convolution output and TLAST matched
 
 ---
 
-## 5. Vivado Block Design Generation
+## 6. Vivado Build
 
-After synthesizing the desired HLS variant, run Vivado.
+First synthesize the HLS IP variant you want to use.
 
-Example using the pipelined version:
+Recommended:
 
 ```bash
 cd hls
 make pipelined
+```
 
+Then generate the Vivado block design and bitstream:
+
+```bash
 cd ../vivado
 vivado -mode batch -source create_project.tcl
 ```
 
-If successful, the generated files will be copied into `pynq/`:
+After a successful Vivado build, the following files should appear:
 
 ```text
 pynq/conv2d_design.bit
 pynq/conv2d_design.hwh
 ```
 
-These two files must have the same base name for PYNQ to load the overlay correctly.
-
 ---
 
-## 6. PYNQ Usage
+## 7. PYNQ Usage
 
-Upload the following files to the PYNQ board:
+Upload these files to the PYNQ board:
 
 ```text
 conv2d_design.bit
@@ -153,7 +170,7 @@ conv2d_design.hwh
 conv2d_lab.ipynb
 ```
 
-Open `conv2d_lab.ipynb` in Jupyter on the PYNQ board and run the cells.
+Open `conv2d_lab.ipynb` in Jupyter and run the notebook.
 
 The notebook loads the overlay:
 
@@ -173,9 +190,9 @@ hw_timer = ol.axi_timer_0
 
 ---
 
-## 7. Input and Output Format
+## 8. Input and Output Format
 
-The accelerator expects:
+The design uses fixed dimensions:
 
 ```text
 Input image:  5 × 5
@@ -195,11 +212,11 @@ The output buffer contains 49 words:
 7 × 7 output values
 ```
 
-The kernel coefficients are loaded through AXI-Lite registers before starting the accelerator.
+The output stream asserts `TLAST` on the 49th output word.
 
 ---
 
-## 8. Example PYNQ Output
+## 9. Example PYNQ Output
 
 Example input image:
 
@@ -219,10 +236,9 @@ Example kernel:
  [-7 -8 -9]]
 ```
 
-Example output:
+Example hardware output:
 
 ```text
-Hardware output:
 [[  -9  -26  -50  -74  -98  -62  -25]
  [ -48 -128 -215 -260 -305 -178  -70]
  [-120 -300 -474 -519 -564 -306 -115]
@@ -232,7 +248,7 @@ Hardware output:
  [-147 -334 -488 -503 -518 -236  -75]]
 ```
 
-If the accelerator output matches the Python reference model, the notebook prints:
+Expected verification message:
 
 ```text
 PASS: hardware output matches Python reference
@@ -240,61 +256,44 @@ PASS: hardware output matches Python reference
 
 ---
 
-## 9. AXI Timer Example Output
-
-The notebook also measures execution using the AXI Timer.
-
-Example:
-
-```text
---- AXI Timer Measurement ---
-HW timer: 850 cycles = 8.500 us @ 100 MHz
-```
-
-The exact cycle count may vary depending on the Vivado design and DMA behavior.
-
----
-
 ## 10. Common Issues
 
 ### DMA receive hangs
 
-Most likely cause: `TLAST` was not asserted correctly.
+Most likely cause: `TLAST` is missing or asserted at the wrong time.
 
-For this design, `TLAST` must be asserted on the 49th output word:
+For a 7×7 output, `TLAST` must be asserted on output index 48:
 
 ```cpp
 out_pkt.last = (out_count == 48);
 ```
 
-### Output is shifted or incorrect
+### Wrong output values
 
-Check that the kernel orientation matches the HLS implementation. The HLS design assumes the kernel is already in the sliding-window orientation. If mathematical convolution is desired, provide the already-flipped kernel.
-
-### PYNQ cannot find IP block
-
-Print available IPs:
-
-```python
-print(ol.ip_dict.keys())
-```
-
-Then update the notebook handle names if needed.
+Check kernel orientation. The HLS implementation assumes the kernel is already in the orientation used by the sliding-window hardware. If mathematical convolution is desired, provide the already-flipped kernel.
 
 ### Overlay does not load
 
-Make sure these files have the same base name:
+Make sure these files are in the same directory and have the same base name:
 
 ```text
 conv2d_design.bit
 conv2d_design.hwh
 ```
 
-They should be in the same directory as the notebook.
+### PYNQ cannot find an IP block
+
+Print available IP names:
+
+```python
+print(ol.ip_dict.keys())
+```
+
+Then update the notebook handle names accordingly.
 
 ---
 
-## 11. Full Build Sequence
+## 11. Full Recommended Build Sequence
 
 From the project root:
 
@@ -306,7 +305,7 @@ cd ../vivado
 vivado -mode batch -source create_project.tcl
 ```
 
-Then upload these files to the PYNQ board:
+Then upload to PYNQ:
 
 ```text
 pynq/conv2d_design.bit

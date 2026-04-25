@@ -1,18 +1,23 @@
+# synth_stream.tcl
+#
+# Usage:
+#   vitis_hls -f synth_stream.tcl -tclargs basic
+#   vitis_hls -f synth_stream.tcl -tclargs pipelined
+#   vitis_hls -f synth_stream.tcl -tclargs unrolled
+#   vitis_hls -f synth_stream.tcl -tclargs aggressive
+
 set PART     "xc7z020clg400-1"
 set CLOCK_NS "10"
 set TOP      "conv2d_stream"
 
-# Choose directive set from command line.
-# Examples:
-#   vitis_hls -f synth_stream.tcl -tclargs basic
-#   vitis_hls -f synth_stream.tcl -tclargs pipelined
-#   vitis_hls -f synth_stream.tcl -tclargs unrolled
-#
+# ------------------------------------------------------------
+# Parse directive set from command line
+# ------------------------------------------------------------
 # Vitis HLS 2021.1 may expose argv as:
 #   {-f synth_stream.tcl -tclargs basic}
-# so we explicitly look for -tclargs.
+# so we explicitly search for -tclargs.
 
-set DIRECTIVE_SET "unrolled"
+set DIRECTIVE_SET "pipelined"
 
 set idx [lsearch $argv "-tclargs"]
 
@@ -33,6 +38,10 @@ puts " Top function     : ${TOP}"
 puts " Directive set    : ${DIRECTIVE_SET}"
 puts "=========================================="
 
+# ------------------------------------------------------------
+# Create HLS project
+# ------------------------------------------------------------
+
 open_project ${PROJ} -reset
 set_top ${TOP}
 
@@ -44,17 +53,33 @@ open_solution "sol1" -flow_target vivado -reset
 set_part ${PART}
 create_clock -period ${CLOCK_NS} -name default
 
+# ------------------------------------------------------------
+# Apply directive set
+# ------------------------------------------------------------
+
 set directive_file "directives/${DIRECTIVE_SET}.tcl"
 
 if {![file exists $directive_file]} {
     puts "ERROR: Directive file $directive_file does not exist."
+    puts "Available expected directive files:"
+    puts "  directives/basic.tcl"
+    puts "  directives/pipelined.tcl"
+    puts "  directives/unrolled.tcl"
+    puts "  directives/aggressive.tcl"
     exit 1
 }
 
 puts "Applying directive file: $directive_file"
 source $directive_file
 
-# Skip csim on Ubuntu 24.04 + Vitis HLS 2021.1 due old linker/glibc mismatch.
+# ------------------------------------------------------------
+# Simulation / synthesis / export
+# ------------------------------------------------------------
+# csim_design is skipped because Vitis HLS 2021.1 may fail to link
+# on newer Linux distributions such as Ubuntu 24.04 due old bundled
+# linker/glibc incompatibility.
+#
+# Run the C++ testbench manually with system g++ if needed.
 # csim_design
 
 csynth_design
