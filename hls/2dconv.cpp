@@ -1,20 +1,45 @@
 #include "2dconv.h"
 
 static data_t axis_to_data(axis_t pkt) {
+#if DATA_MODE == DATA_MODE_INT
+    return (data_t)pkt.data;
+#elif DATA_MODE == DATA_MODE_FIXED
     data_t x;
     x.range(31, 0) = pkt.data.range(31, 0);
     return x;
+#elif DATA_MODE == DATA_MODE_FLOAT
+    union {
+        unsigned int u;
+        float f;
+    } converter;
+    converter.u = pkt.data.to_uint();
+    return converter.f;
+#endif
 }
 
 static axis_t data_to_axis(data_t x, bool last) {
     axis_t pkt;
+
+#if DATA_MODE == DATA_MODE_INT
+    pkt.data = (ap_uint<32>)x;
+#elif DATA_MODE == DATA_MODE_FIXED
     pkt.data.range(31, 0) = x.range(31, 0);
+#elif DATA_MODE == DATA_MODE_FLOAT
+    union {
+        unsigned int u;
+        float f;
+    } converter;
+    converter.f = x;
+    pkt.data = converter.u;
+#endif
+
     pkt.keep = -1;
     pkt.strb = -1;
     pkt.user = 0;
     pkt.id   = 0;
     pkt.dest = 0;
     pkt.last = last;
+
     return pkt;
 }
 

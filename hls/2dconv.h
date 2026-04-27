@@ -4,8 +4,23 @@
 #include <hls_stream.h>
 #include <ap_axi_sdata.h>
 #include <ap_fixed.h>
+#include <ap_int.h>
 
-typedef ap_fixed<32, 16> data_t;
+#define DATA_MODE_INT   0
+#define DATA_MODE_FIXED 1
+#define DATA_MODE_FLOAT 2
+
+#define DATA_MODE DATA_MODE_FLOAT
+
+#if DATA_MODE == DATA_MODE_INT
+    typedef ap_int<32> data_t;
+#elif DATA_MODE == DATA_MODE_FIXED
+    #include <ap_fixed.h>
+    typedef ap_fixed<32, 16> data_t;
+#elif DATA_MODE == DATA_MODE_FLOAT
+    typedef float data_t;
+#endif
+
 typedef ap_axiu<32, 0, 0, 0> axis_t;
 
 #define IH 64
