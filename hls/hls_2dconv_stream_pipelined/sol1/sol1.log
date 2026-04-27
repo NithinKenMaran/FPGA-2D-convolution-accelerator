@@ -1,0 +1,142 @@
+==============================================================
+Vitis HLS - High-Level Synthesis from C, C++ and OpenCL v2021.1 (64-bit)
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+==============================================================
+INFO: [HLS 200-1505] Using flow_target 'vivado'
+INFO: [HLS 200-1510] Running: set_part xc7z020clg400-1 
+INFO: [HLS 200-1611] Setting target device to 'xc7z020-clg400-1'
+INFO: [HLS 200-1510] Running: create_clock -period 10 -name default 
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1510] Running: config_compile -pipeline_loops 0 
+INFO: [XFORM 203-1171] Pipeline the innermost loop with trip count more than 0 or its parent loop when its trip count is less than or equal 0.
+INFO: [HLS 200-1510] Running: set_directive_array_partition -type complete -dim 0 conv2d_stream kernel 
+INFO: [HLS 200-1510] Running: set_directive_array_partition -type complete -dim 1 conv2d_stream linebuf 
+INFO: [HLS 200-1510] Running: set_directive_pipeline -II 1 conv2d_stream/init_rows_init_cols 
+INFO: [HLS 200-1510] Running: set_directive_pipeline -II 1 conv2d_stream/linebuf_left_to_right 
+INFO: [HLS 200-1510] Running: set_directive_pipeline -II 1 conv2d_stream/shift_up 
+INFO: [HLS 200-1510] Running: set_directive_unroll -factor 1 conv2d_stream/mac_row 
+INFO: [HLS 200-1510] Running: set_directive_unroll -factor 1 conv2d_stream/mac_col 
+INFO: [HLS 200-1510] Running: csynth_design 
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 0.01 seconds. CPU system time: 0 seconds. Elapsed time: 0 seconds; current allocated memory: 315.073 MB.
+INFO: [HLS 200-10] Analyzing design file '2dconv.cpp' ... 
+WARNING: [HLS 207-5528] Ignore interface attribute or pragma which is not used in top function: 2dconv.cpp:23:9
+WARNING: [HLS 207-5301] unused parameter 'print': /tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_int_base.h:792:16
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 4.04 seconds. CPU system time: 0.5 seconds. Elapsed time: 3.91 seconds; current allocated memory: 316.809 MB.
+INFO: [HLS 200-777] Using interface defaults for 'Vivado' flow target.
+INFO: [HLS 214-279] Initial Interval estimation mode is set into default.
+INFO: [HLS 214-284] Auto array partition mode is set into default.
+WARNING: [HLS 214-275] In 'mac_row', Pragma conflict happens on 'PIPELINE' and 'UNROLL_OFF' pragmas: Pipeline requires unrolling all sub loops (2dconv.cpp:62:13)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_user_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:293:50)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_dest_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:296:25)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_id_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:295:67)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_user_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:295:36)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_dest_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:294:39)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_id_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:294:23)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_user_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:304:51)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_dest_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:307:26)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_id_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:306:68)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_user_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:306:37)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_dest_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:305:40)
+INFO: [HLS 214-131] Inlining function 'hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>::get_id_ptr()' into 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' (/tools/Xilinx/Vitis_HLS/2021.1/common/technology/autopilot/ap_axi_sdata.h:305:24)
+INFO: [HLS 214-131] Inlining function 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::write(hls::axis<ap_uint<32>, 0ul, 0ul, 0ul> const&)' into 'conv2d_stream(hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>&, hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>&, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>)' (2dconv.cpp:78:24)
+INFO: [HLS 214-131] Inlining function 'hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>::read()' into 'conv2d_stream(hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>&, hls::stream<hls::axis<ap_uint<32>, 0ul, 0ul, 0ul>, 0>&, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>, ap_int<32>)' (2dconv.cpp:56:43)
+INFO: [HLS 214-270] Starting automatic array partition analysis...
+INFO: [HLS 200-111] Finished Compiling Optimization and Transform: CPU user time: 3.47 seconds. CPU system time: 0.36 seconds. Elapsed time: 3.83 seconds; current allocated memory: 318.567 MB.
+INFO: [HLS 200-111] Finished Checking Pragmas: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0 seconds; current allocated memory: 318.568 MB.
+INFO: [HLS 200-10] Starting code transformations ...
+INFO: [HLS 200-111] Finished Standard Transforms: CPU user time: 0.04 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.04 seconds; current allocated memory: 326.008 MB.
+INFO: [HLS 200-10] Checking synthesizability ...
+INFO: [HLS 200-111] Finished Checking Synthesizability: CPU user time: 0.08 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.08 seconds; current allocated memory: 335.305 MB.
+INFO: [XFORM 203-502] Unrolling all sub-loops inside loop 'linebuf_left_to_right' (2dconv.cpp:53) in function 'conv2d_stream' for pipelining.
+WARNING: [XFORM 203-503] Ignored partial unroll directive for loop 'mac_row' (2dconv.cpp:53) because its parent loop or function is pipelined.
+WARNING: [XFORM 203-503] Ignored partial unroll directive for loop 'mac_col' (2dconv.cpp:53) because its parent loop or function is pipelined.
+INFO: [HLS 200-489] Unrolling loop 'mac_row' (2dconv.cpp:53) in function 'conv2d_stream' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'mac_col' (2dconv.cpp:53) in function 'conv2d_stream' completely with a factor of 3.
+INFO: [XFORM 203-101] Partitioning array 'linebuf.V' (2dconv.cpp:25) in dimension 1 completely.
+INFO: [XFORM 203-101] Partitioning array 'kernel.V' (2dconv.cpp:26) in dimension 1 completely.
+INFO: [XFORM 203-101] Partitioning array 'kernel.V' (2dconv.cpp:26) in dimension 2 completely.
+INFO: [XFORM 203-11] Balancing expressions in function 'conv2d_stream' (2dconv.cpp:25:40)...8 expression(s) balanced.
+INFO: [HLS 200-111] Finished Loop, function and other optimizations: CPU user time: 0.13 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.15 seconds; current allocated memory: 366.893 MB.
+WARNING: [HLS 200-960] Cannot flatten loop 'each_image_row' (2dconv.cpp:46:9) in function 'conv2d_stream' more than one sub loop.
+INFO: [HLS 200-472] Inferring partial write operation for 'linebuf.V[0]' (2dconv.cpp:42:27)
+INFO: [HLS 200-472] Inferring partial write operation for 'linebuf.V[2]' (2dconv.cpp:58:37)
+INFO: [HLS 200-472] Inferring partial write operation for 'linebuf.V[0]' (2dconv.cpp:84:27)
+INFO: [HLS 200-472] Inferring partial write operation for 'linebuf.V[1]' (2dconv.cpp:85:27)
+INFO: [HLS 200-472] Inferring partial write operation for 'linebuf.V[2]' (2dconv.cpp:86:27)
+INFO: [HLS 200-111] Finished Architecture Synthesis: CPU user time: 0.08 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.09 seconds; current allocated memory: 384.438 MB.
+INFO: [HLS 200-10] Starting hardware synthesis ...
+INFO: [HLS 200-10] Synthesizing 'conv2d_stream' ...
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'conv2d_stream_Pipeline_linebuf_left_to_right' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_2'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_1'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_0'. Use bind_storage pragma to override this type.
+INFO: [SCHED 204-61] Pipelining loop 'linebuf_left_to_right'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 8, loop 'linebuf_left_to_right'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0.09 seconds. CPU system time: 0.02 seconds. Elapsed time: 0.12 seconds; current allocated memory: 384.927 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0.08 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.08 seconds; current allocated memory: 385.354 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'conv2d_stream_Pipeline_shift_up' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_2'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_1'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_0'. Use bind_storage pragma to override this type.
+INFO: [SCHED 204-61] Pipelining loop 'shift_up'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 2, loop 'shift_up'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0.1 seconds. CPU system time: 0 seconds. Elapsed time: 0.11 seconds; current allocated memory: 385.503 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0.02 seconds. CPU system time: 0 seconds. Elapsed time: 0.02 seconds; current allocated memory: 385.601 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'conv2d_stream' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_2'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_0'. Use bind_storage pragma to override this type.
+INFO: [HLS 200-1457] Automatically inferring inferring RAM_1WNR storage type for array 'linebuf_V_1'. Use bind_storage pragma to override this type.
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0.06 seconds. CPU system time: 0 seconds. Elapsed time: 0.06 seconds; current allocated memory: 385.860 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0.07 seconds. CPU system time: 0 seconds. Elapsed time: 0.07 seconds; current allocated memory: 386.322 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'conv2d_stream_Pipeline_linebuf_left_to_right' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-1030] Apply Unified Pipeline Control on module 'conv2d_stream_Pipeline_linebuf_left_to_right' pipeline 'linebuf_left_to_right' pipeline type 'loop pipeline'
+INFO: [RTGEN 206-100] Generating core module 'mul_32s_32s_32_2_1': 9 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'conv2d_stream_Pipeline_linebuf_left_to_right'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0.11 seconds. CPU system time: 0.01 seconds. Elapsed time: 0.12 seconds; current allocated memory: 387.301 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'conv2d_stream_Pipeline_shift_up' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-1030] Apply Unified Pipeline Control on module 'conv2d_stream_Pipeline_shift_up' pipeline 'shift_up' pipeline type 'loop pipeline'
+INFO: [RTGEN 206-100] Finished creating RTL model for 'conv2d_stream_Pipeline_shift_up'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0.26 seconds. CPU system time: 0 seconds. Elapsed time: 0.26 seconds; current allocated memory: 389.125 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'conv2d_stream' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+WARNING: [RTGEN 206-101] Design contains AXI ports. Reset is fixed to synchronous and active low.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/in_stream_V_data_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/in_stream_V_keep_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/in_stream_V_strb_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/in_stream_V_last_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/out_stream_V_data_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/out_stream_V_keep_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/out_stream_V_strb_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2d_stream/out_stream_V_last_V' to 'axis' (register, both mode).

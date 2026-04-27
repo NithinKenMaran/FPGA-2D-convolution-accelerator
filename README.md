@@ -2,7 +2,7 @@
 
 This project implements a streaming 2D convolution accelerator using Vitis HLS, Vivado, and PYNQ-Z2.
 
-The accelerator accepts a 5×5 input image, applies a 3×3 kernel, and produces a 7×7 full-convolution output. Image pixels are transferred using AXI DMA, while the 3×3 kernel coefficients are loaded through AXI-Lite registers before streaming begins.
+The accelerator accepts a 64×64 input image, applies a 3×3 kernel, and produces a 66×66 full-convolution output. Image pixels are transferred using AXI DMA, while the 3×3 kernel coefficients are loaded through AXI-Lite registers before streaming begins.
 
 ---
 
@@ -10,27 +10,34 @@ The accelerator accepts a 5×5 input image, applies a 3×3 kernel, and produces 
 
 ```text
 .
-├── hls/
+├── expected_output.txt
+├── FPGA-tested-and-verified
+│   └── conv2d.ipynb
+├── generate_vectors.py
+├── hls
+│   ├── 2dconv_tb.cpp
 │   ├── 2dconv.cpp
 │   ├── 2dconv.h
-│   ├── 2dconv_tb.cpp
+│   ├── directives
+│   │   ├── aggressive.tcl
+│   │   ├── basic.tcl
+│   │   ├── pipelined.tcl
+│   │   └── unrolled.tcl
+│   ├── hls_2dconv_stream_pipelined
+│   │   ├── hls.app
+│   │   └── sol1/
 │   ├── Makefile
-│   ├── synth_stream.tcl
-│   ├── run_stream.sh
 │   ├── read_reports.sh
-│   └── directives/
-│       ├── basic.tcl
-│       ├── pipelined.tcl
-│       ├── unrolled.tcl
-│       └── aggressive.tcl
-│
-├── vivado/
-│   └── create_project.tcl
-│
-└── pynq/
-    ├── conv2d_design.bit
-    ├── conv2d_design.hwh
-    └── conv2d_lab.ipynb
+│   ├── run_stream.sh
+│   └── synth_stream.tcl
+├── input.txt
+├── pynq
+│   ├── conv2d_design.bit
+│   ├── conv2d_design.hwh
+│   └── conv2d_lab_64x64.ipynb
+├── README.md
+└── vivado
+    └── create_project.tcl
 ````
 
 ---
@@ -41,13 +48,12 @@ The project includes four HLS directive sets.
 
 | Variant      | Purpose                                                                                                      |
 | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| `basic`      | Disables automatic loop pipelining. Used as the low-resource, high-latency baseline.                         |
-| `pipelined`  | Pipelines the main sliding-window and row-shift loops. This is the recommended implementation.               |
-| `unrolled`   | Adds explicit unrolling of the 3×3 MAC loops. In this design, it may produce the same result as `pipelined`. |
-| `aggressive` | Pipelines the outer image-row loop. This can reduce latency but may greatly increase resource usage.         |
+| `basic`      | Disables automatic loop pipelining. This uses the lowest resources, but has high latency.|
+| `pipelined`  | Pipelines the main sliding-window and row-shift loops. |
+| `unrolled`   | Adds explicit unrolling of the 3×3 MAC loops.|
+| `aggressive` | Pipelines the outer image-row loop. This reduces latency further, but uses far more DSPs.|
 
-The aggressive version is mainly for educational comparison.
-
+The aggressive version, for a 64x64 image, tries to achieve II=1 by unrolling all loops, but this exceeds the number of DSPs available on the PYNQ board, so this wasn't tested on hardware. For hardware testing, the `pipelined` version was used.
 ---
 
 ## 3. Running HLS Synthesis
@@ -70,12 +76,14 @@ make aggressive
 Run all variants and print a report summary:
 
 ```bash
+chmod +x run_stream.sh
 ./run_stream.sh
 ```
 
 Read reports from existing builds:
 
 ```bash
+chmod +x read_reports.sh
 ./read_reports.sh
 ```
 
@@ -83,7 +91,7 @@ Read reports from existing builds:
 
 ## 4. Example HLS Report Output
 
-Typical `./read_reports.sh` output:
+Example `./read_reports.sh` output for a 64×64 image and 3×3 kernel:
 
 ```text
 ==========================================
@@ -91,51 +99,24 @@ Typical `./read_reports.sh` output:
 ==========================================
 Variant      |    Latency |     Time(ns) |          DSP |       BRAM |         FF |        LUT
 -------------+------------+--------------+--------------+------------+------------+-----------
-basic        |       2832 |    2.832e+04 |       3 (1%) |          - |  1153 (1%) |  1446 (2%)
-pipelined    |        246 |    2.460e+03 |     27 (12%) |          - |  4885 (4%) |  2151 (4%)
-unrolled     |        246 |    2.460e+03 |     27 (12%) |          - |  4885 (4%) |  2151 (4%)
-aggressive   |        160 |    1.600e+03 |    177 (80%) |          - | 13624 (12%)|  6334 (11%)
+basic        |     244614 |    2.446e+06 |       3 (1%) |    2 (~0%) |  1140 (1%) |  1458 (2%)
+pipelined    |       9981 |    9.981e+04 |     27 (12%) |    14 (5%) |  3297 (3%) |  2148 (4%)
+unrolled     |       9981 |    9.981e+04 |     27 (12%) |    14 (5%) |  3297 (3%) |  2148 (4%)
+aggressive   |       4756 |    4.756e+04 |   759 (345%) |     6 (2%) | 63707 (59%) | 32135 (60%)
 ```
-
-The exact numbers may vary depending on code and HLS scheduling.
 
 Interpretation:
 
 * `basic` uses the fewest DSPs but has the highest latency.
 * `pipelined` greatly reduces latency by increasing parallelism.
 * `unrolled` may match `pipelined` because HLS already infers enough MAC parallelism to satisfy the pipelined loop.
-* `aggressive` may reduce latency further but can consume a very large amount of DSP resources.
+* `aggressive` reduces latency further, but exceeds the available DSP resources on the PYNQ-Z2.
 
 ---
 
-## 5. Manual C++ Testbench
+## 5. Vivado Build
 
-If Vitis HLS C simulation fails on your Linux setup, run the testbench manually:
-
-```bash
-cd hls
-
-env -u LD_LIBRARY_PATH \
-PATH=/usr/bin:/bin \
-/usr/bin/g++ -std=c++14 \
--I/tools/Xilinx/Vitis_HLS/2021.1/include \
-2dconv.cpp 2dconv_tb.cpp \
--o 2dconv_tb_manual
-
-./2dconv_tb_manual
-```
-
-Expected output:
-
-```text
-PASS: 2D convolution output and TLAST matched
-```
-
----
-
-## 6. Vivado Build
-
-First synthesize the HLS IP variant you want to use.
+synthesize the intended HLS IP variant.
 
 Recommended:
 
@@ -151,81 +132,74 @@ cd ../vivado
 vivado -mode batch -source create_project.tcl
 ```
 
-After a successful Vivado build, the following files should appear:
+These files should then appear:
 
 ```text
 pynq/conv2d_design.bit
 pynq/conv2d_design.hwh
 ```
 
+Upload these files to the PYNQ board along with the notebook.
+
 ---
 
-## 7. PYNQ Usage
+## 6. PYNQ Usage
 
 Upload these files to the PYNQ board:
 
 ```text
 conv2d_design.bit
 conv2d_design.hwh
-conv2d_lab.ipynb
+conv2d_lab_64x64.ipynb
 ```
 
-Open `conv2d_lab.ipynb` in Jupyter and run the notebook.
-
-The notebook loads the overlay:
-
-```python
-from pynq import Overlay
-
-ol = Overlay("conv2d_design.bit")
-```
-
-Expected IP handles:
-
-```python
-dma = ol.axi_dma_0
-conv2d = ol.conv2d_stream_0
-hw_timer = ol.axi_timer_0
-```
+Open `conv2d.ipynb` in Jupyter and run the notebook.
 
 ---
 
-## 8. Input and Output Format
+## 7. Input and Output Format
 
 The design uses fixed dimensions:
 
 ```text
-Input image:  5 × 5
+Input image:  64 × 64
 Kernel:       3 × 3
-Output image: 7 × 7
+Output image: 66 × 66
 ```
 
-The DMA input buffer contains 35 words:
+The DMA input buffer contains 4224 words:
 
 ```text
-25 real image pixels + 10 zero-padding pixels
+4096 real image pixels + 128 zero-padding pixels
 ```
 
-The output buffer contains 49 words:
+The 128 zero-padding pixels correspond to two additional zero rows of width 64.
+
+The output buffer contains 4356 words:
 
 ```text
-7 × 7 output values
+66 × 66 output values
 ```
 
-The output stream asserts `TLAST` on the 49th output word.
+The output stream asserts `TLAST` on the 4356th output word.
+
+```cpp
+out_pkt.last = (out_count == OUTPUT_STREAM_WORDS - 1);
+```
 
 ---
 
-## 9. Example PYNQ Output
+## 8. Example PYNQ Output
 
-Example input image:
+Example input image preview:
 
 ```text
-[[ 1  2  3  4  5]
- [ 6  7  8  9 10]
- [11 12 13 14 15]
- [16 17 18 19 20]
- [21 22 23 24 25]]
+Top-left 5×5 of input image:
+[[  1   2   3   4   5]
+ [ 65  66  67  68  69]
+ [129 130 131 132 133]
+ [193 194 195 196 197]
+ [257 258 259 260 261]]
 ```
 
 Example kernel:
@@ -236,16 +210,21 @@ Example kernel:
  [-7 -8 -9]]
 ```
 
-Example hardware output:
+Example output preview:
 
 ```text
-[[  -9  -26  -50  -74  -98  -62  -25]
- [ -48 -128 -215 -260 -305 -178  -70]
- [-120 -300 -474 -519 -564 -306 -115]
- [-210 -510 -789 -834 -879 -456 -165]
- [-300 -720 -1104 -1149 -1194 -606 -215]
- [-234 -542 -811 -836 -861 -412 -145]
- [-147 -334 -488 -503 -518 -236  -75]]
+Hardware output shape:
+(66, 66)
+
+Top-left 8×8 of hardware output:
+[[    -9    -26    -50    -74    -98   -122   -146   -170]
+ [  -264   -620   -983  -1028  -1073  -1118  -1163  -1208]
+ [  -840  -1896  -2910  -2955  -3000  -3045  -3090  -3135]
+ [ -1800  -4104  -6366  -6411  -6456  -6501  -6546  -6591]
+ [ -2760  -6312  -9822  -9867  -9912  -9957 -10002 -10047]
+ [ -3720  -8520 -13278 -13323 -13368 -13413 -13458 -13503]
+ [ -4680 -10728 -16734 -16779 -16824 -16869 -16914 -16959]
+ [ -5640 -12936 -20190 -20235 -20280 -20325 -20370 -20415]]
 ```
 
 Expected verification message:
@@ -256,60 +235,42 @@ PASS: hardware output matches Python reference
 
 ---
 
-## 10. Common Issues
+## 9. Timing Example
 
-### DMA receive hangs
-
-Most likely cause: `TLAST` is missing or asserted at the wrong time.
-
-For a 7×7 output, `TLAST` must be asserted on output index 48:
-
-```cpp
-out_pkt.last = (out_count == 48);
-```
-
-### Wrong output values
-
-Check kernel orientation. The HLS implementation assumes the kernel is already in the orientation used by the sliding-window hardware. If mathematical convolution is desired, provide the already-flipped kernel.
-
-### Overlay does not load
-
-Make sure these files are in the same directory and have the same base name:
+Example board-level timing from the AXI Timer:
 
 ```text
-conv2d_design.bit
-conv2d_design.hwh
+HW timer: 190972 cycles = 1909.720 us @ 100 MHz
 ```
 
-### PYNQ cannot find an IP block
+For a 66×66 output:
 
-Print available IP names:
-
-```python
-print(ol.ip_dict.keys())
+```text
+Output pixels = 4356
+Measured cycles = 190972
 ```
 
-Then update the notebook handle names accordingly.
+Board-level throughput:
+
+```text
+4356 / 190972 ≈ 0.0228 output pixels/cycle
+```
+
+Equivalent:
+
+```text
+≈ 43.8 cycles/output pixel
+≈ 2.28 million output pixels/s at 100 MHz
+```
+
+Example comparison with SciPy:
+
+```text
+FPGA DMA+accelerator time: 1.909720 ms
+SciPy correlate2d time:    2.379813 ms
+FPGA speedup vs SciPy:     1.246x
+```
+
+The board-level timing includes DMA transfer, AXI interconnect, DDR access, stream handshaking, and transaction overhead. The HLS report latency is the core-only estimate.
 
 ---
-
-## 11. Full Recommended Build Sequence
-
-From the project root:
-
-```bash
-cd hls
-make pipelined
-
-cd ../vivado
-vivado -mode batch -source create_project.tcl
-```
-
-Then upload to PYNQ:
-
-```text
-pynq/conv2d_design.bit
-pynq/conv2d_design.hwh
-pynq/conv2d_lab.ipynb
-```
-
