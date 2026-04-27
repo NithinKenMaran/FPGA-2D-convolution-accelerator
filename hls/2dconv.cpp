@@ -1,5 +1,23 @@
 #include "2dconv.h"
 
+static data_t axis_to_data(axis_t pkt) {
+    data_t x;
+    x.range(31, 0) = pkt.data.range(31, 0);
+    return x;
+}
+
+static axis_t data_to_axis(data_t x, bool last) {
+    axis_t pkt;
+    pkt.data.range(31, 0) = x.range(31, 0);
+    pkt.keep = -1;
+    pkt.strb = -1;
+    pkt.user = 0;
+    pkt.id   = 0;
+    pkt.dest = 0;
+    pkt.last = last;
+    return pkt;
+}
+
 void conv2d_stream(
     hls::stream<axis_t>& in_stream,
     hls::stream<axis_t>& out_stream,
@@ -54,7 +72,7 @@ each_image_row:
 
             if (ptr < IW) {
                 axis_t in_pkt = in_stream.read();
-                data_t pix = (data_t)in_pkt.data;
+                data_t pix = axis_to_data(in_pkt);
                 linebuf[2][ptr + 2] = pix;
             }
 
@@ -66,16 +84,9 @@ each_image_row:
                 }
             }
 
-            axis_t out_pkt;
-            out_pkt.data = (ap_uint<32>)acc;
-            out_pkt.keep = -1;
-            out_pkt.strb = -1;
-            out_pkt.user = 0;
-            out_pkt.id   = 0;
-            out_pkt.dest = 0;
-            out_pkt.last = (out_count == OUTPUT_STREAM_WORDS - 1);
-
+            axis_t out_pkt = data_to_axis(acc, out_count == OUTPUT_STREAM_WORDS - 1);
             out_stream.write(out_pkt);
+
             out_count++;
         }
 

@@ -3,9 +3,9 @@
 
 #include <hls_stream.h>
 #include <ap_axi_sdata.h>
-#include <ap_int.h>
+#include <ap_fixed.h>
 
-typedef ap_int<32> data_t;
+typedef ap_fixed<32, 16> data_t;
 typedef ap_axiu<32, 0, 0, 0> axis_t;
 
 #define IH 64
