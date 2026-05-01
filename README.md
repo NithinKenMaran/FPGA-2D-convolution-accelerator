@@ -6,7 +6,7 @@ The accelerator accepts a 64×64 input image, applies a 3×3 kernel, and produce
 
 The input image is streamed in, pixel-by-pixel. The output image starts streaming as soon as the first input image is received. This accelerator achieves a 1.94x speedup over SciPy's `correlate2d` function running on an ARM processor.
 
-The architecture, design tradeoffs, accuracy and timing measurement results are present in `./documentation/architecture-and-results.pdf`.
+The architecture, design tradeoffs, accuracy and timing measurement results are present in `./documentation/architecture-and-results.md`.
 
 ---
 
@@ -14,7 +14,7 @@ The architecture, design tradeoffs, accuracy and timing measurement results are 
 
 ```text
 ├── documentation
-│   └── architecture-and-results.pdf
+│   └── architecture-and-results.md
 ├── hls
 │   ├── 2dconv_tb.cpp
 │   ├── 2dconv.cpp
@@ -176,4 +176,4 @@ Open `conv2d-ap-fixed.ipynb` in Jupyter and run the notebook.
 
 ## Results
 
-The accuracy and timing results are documented in my project report: `./documentation/architecture-and-results.pdf`
+The accuracy and timing results are documented in my project report, in `./documentation/architecture-and-results.md`
