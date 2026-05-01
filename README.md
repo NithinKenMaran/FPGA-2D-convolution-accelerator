@@ -6,7 +6,7 @@ The accelerator accepts a 64×64 input image, applies a 3×3 kernel, and produce
 
 The input image is streamed in, pixel-by-pixel. The output image starts streaming as soon as the first input image is received. This accelerator achieves a 1.94x speedup over SciPy's `correlate2d` function running on an ARM processor.
 
-The architecture, design tradeoffs, accuracy and timing measurement results are present in `./documentation/architecture-and-results.md`.
+The architecture, design tradeoffs, accuracy and timing measurement results are present in [`documentation/architecture-and-results.md`](./documentation/architecture-and-results.md).
 
 ---
 
