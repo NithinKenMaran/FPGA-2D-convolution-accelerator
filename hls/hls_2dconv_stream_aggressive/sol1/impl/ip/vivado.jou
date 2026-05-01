@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2021.1 (64-bit)
+# SW Build 3247384 on Thu Jun 10 19:36:07 MDT 2021
+# IP Build 3246043 on Fri Jun 11 00:30:35 MDT 2021
+# Start of session at: Tue Apr 28 23:13:56 2026
+# Process ID: 11202
+# Current directory: /home/kenny/vitis_ws/image64apfixed/hls/hls_2dconv_stream_aggressive/sol1/impl/ip
+# Command line: vivado -notrace -mode batch -source run_ippack.tcl
+# Log file: /home/kenny/vitis_ws/image64apfixed/hls/hls_2dconv_stream_aggressive/sol1/impl/ip/vivado.log
+# Journal file: /home/kenny/vitis_ws/image64apfixed/hls/hls_2dconv_stream_aggressive/sol1/impl/ip/vivado.jou
+#-----------------------------------------------------------
+source run_ippack.tcl -notrace

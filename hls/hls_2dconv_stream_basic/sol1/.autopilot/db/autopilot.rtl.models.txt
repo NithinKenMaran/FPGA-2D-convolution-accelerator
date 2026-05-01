@@ -1,0 +1,13 @@
+conv2d_stream_mul_32s_32s_48_2_1
+conv2d_stream_linebuf_V
+conv2d_stream_kernel_V
+conv2d_stream_CTRL_s_axi
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream_regslice_both
+conv2d_stream

@@ -1,0 +1,103 @@
+
+
+================================================================
+== Synthesis Summary Report of 'conv2d_stream'
+================================================================
++ General Information: 
+    * Date:           Tue Apr 28 23:12:04 2026
+    * Version:        2021.1 (Build 3247384 on Thu Jun 10 19:36:07 MDT 2021)
+    * Project:        hls_2dconv_stream_unrolled
+    * Solution:       sol1 (Vivado IP Flow Target)
+    * Product family: zynq
+    * Target device:  xc7z020-clg400-1
+    
+
++ Performance & Resource Estimates: 
+    
+    PS: '+' for module; 'o' for loop; '*' for dataflow
+    +------------------------------------------------------------+------+------+---------+-----------+----------+---------+------+----------+---------+----------+-----------+-----------+-----+
+    |                           Modules                          | Issue|      | Latency |  Latency  | Iteration|         | Trip |          |         |          |           |           |     |
+    |                           & Loops                          | Type | Slack| (cycles)|    (ns)   |  Latency | Interval| Count| Pipelined|  BRAM   |    DSP   |     FF    |    LUT    | URAM|
+    +------------------------------------------------------------+------+------+---------+-----------+----------+---------+------+----------+---------+----------+-----------+-----------+-----+
+    |+ conv2d_stream                                             |     -|  0.39|     9981|  9.981e+04|         -|     9982|     -|        no|  14 (5%)|  27 (12%)|  3825 (3%)|  2318 (4%)|    -|
+    | + grp_conv2d_stream_Pipeline_linebuf_left_to_right_fu_250  |     -|  0.39|       74|    740.000|         -|       74|     -|        no|        -|  27 (12%)|  3079 (2%)|  1167 (2%)|    -|
+    |  o linebuf_left_to_right                                   |     -|  7.30|       72|    720.000|         8|        1|    66|       yes|        -|         -|          -|          -|    -|
+    | + grp_conv2d_stream_Pipeline_shift_up_fu_283               |     -|  0.79|       70|    700.000|         -|       70|     -|        no|        -|         -|   24 (~0%)|   62 (~0%)|    -|
+    |  o shift_up                                                |     -|  7.30|       68|    680.000|         2|        1|    68|       yes|        -|         -|          -|          -|    -|
+    | o init_rows                                                |     -|  7.30|      210|  2.100e+03|        70|        -|     3|        no|        -|         -|          -|          -|    -|
+    |  o init_cols                                               |     -|  7.30|       68|    680.000|         1|        -|    68|        no|        -|         -|          -|          -|    -|
+    | o each_image_row                                           |     -|  7.30|     9768|  9.768e+04|       148|        -|    66|        no|        -|         -|          -|          -|    -|
+    +------------------------------------------------------------+------+------+---------+-----------+----------+---------+------+----------+---------+----------+-----------+-----------+-----+
+
+
+================================================================
+== HW Interfaces
+================================================================
+* S_AXILITE
++------------+------------+---------------+--------+----------+
+| Interface  | Data Width | Address Width | Offset | Register |
++------------+------------+---------------+--------+----------+
+| s_axi_CTRL | 32         | 7             | 16     | 0        |
++------------+------------+---------------+--------+----------+
+
+* AXIS
++------------+---------------+-------+-------+-------+--------+-------+--------+
+| Interface  | Register Mode | TDATA | TKEEP | TLAST | TREADY | TSTRB | TVALID |
++------------+---------------+-------+-------+-------+--------+-------+--------+
+| in_stream  | both          | 32    | 4     | 1     | 1      | 4     | 1      |
+| out_stream | both          | 32    | 4     | 1     | 1      | 4     | 1      |
++------------+---------------+-------+-------+-------+--------+-------+--------+
+
+* TOP LEVEL CONTROL
++-----------+------------+-----------+
+| Interface | Type       | Ports     |
++-----------+------------+-----------+
+| ap_clk    | clock      | ap_clk    |
+| ap_rst_n  | reset      | ap_rst_n  |
+| interrupt | interrupt  | interrupt |
+| ap_ctrl   | ap_ctrl_hs |           |
++-----------+------------+-----------+
+
+
+================================================================
+== SW I/O Information
+================================================================
+* Top Function Arguments
++------------+-----------+---------------------------------------------+
+| Argument   | Direction | Datatype                                    |
++------------+-----------+---------------------------------------------+
+| in_stream  | in        | stream<hls::axis<ap_uint<32>, 0, 0, 0>, 0>& |
+| out_stream | out       | stream<hls::axis<ap_uint<32>, 0, 0, 0>, 0>& |
+| k00        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k01        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k02        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k10        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k11        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k12        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k20        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k21        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
+| k22        | in        | ap_fixed<32, 16, AP_TRN, AP_WRAP, 0>        |
++------------+-----------+---------------------------------------------+
+
+* SW-to-HW Mapping
++------------+----------------+-----------+-----------------------+
+| Argument   | HW Name        | HW Type   | HW Info               |
++------------+----------------+-----------+-----------------------+
+| in_stream  | in_stream      | interface |                       |
+| out_stream | out_stream     | interface |                       |
+| k00        | s_axi_CTRL k00 | register  | offset=0x10, range=32 |
+| k01        | s_axi_CTRL k01 | register  | offset=0x18, range=32 |
+| k02        | s_axi_CTRL k02 | register  | offset=0x20, range=32 |
+| k10        | s_axi_CTRL k10 | register  | offset=0x28, range=32 |
+| k11        | s_axi_CTRL k11 | register  | offset=0x30, range=32 |
+| k12        | s_axi_CTRL k12 | register  | offset=0x38, range=32 |
+| k20        | s_axi_CTRL k20 | register  | offset=0x40, range=32 |
+| k21        | s_axi_CTRL k21 | register  | offset=0x48, range=32 |
+| k22        | s_axi_CTRL k22 | register  | offset=0x50, range=32 |
++------------+----------------+-----------+-----------------------+
+
+
+================================================================
+== M_AXI Burst Information
+================================================================
+
