@@ -167,10 +167,10 @@ Upload these files to the PYNQ board:
 ```text
 conv2d_design.bit
 conv2d_design.hwh
-conv2d_lab_64x64.ipynb
+conv2d-ap-fixed.ipynb
 ```
 
-Open `conv2d.ipynb` in Jupyter and run the notebook.
+Open `conv2d-ap-fixed.ipynb` in Jupyter and run the notebook.
 
 ---
 
